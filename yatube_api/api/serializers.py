@@ -35,10 +35,6 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
-    """
-    - user: (кто подписан)
-    - following: (на кого подписан)
-    """
     user = serializers.SlugRelatedField(
         slug_field='username', read_only=True)
     following = serializers.SlugRelatedField(

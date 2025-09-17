@@ -4,7 +4,7 @@ from django.db import models
 
 
 class Group(models.Model):
-    """Сообщество (группа) для публикаций."""
+    """Сообщество для публикаций."""
     title = models.CharField("Название", max_length=200)
     slug = models.SlugField(
         "Идентификатор (slug)",
@@ -96,13 +96,13 @@ class Follow(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="follower",   # кто подписывается
+        related_name="follower",
         verbose_name="Подписчик",
     )
     following = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="following",  # на кого подписан
+        related_name="following",
         verbose_name="Автор",
     )
 
@@ -110,7 +110,6 @@ class Follow(models.Model):
         verbose_name = "подписка"
         verbose_name_plural = "подписки"
         constraints = (
-            # уникальная пара подписчик → автор
             models.UniqueConstraint(
                 fields=("user", "following"),
                 name="unique_user_following",
@@ -118,7 +117,6 @@ class Follow(models.Model):
         )
 
     def clean(self):
-        # Защитимся от self-follow на уровне модели
         if self.user_id == self.following_id:
             raise ValidationError("Нельзя подписаться на самого себя.")
 
