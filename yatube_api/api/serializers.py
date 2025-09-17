@@ -36,12 +36,8 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class FollowSerializer(serializers.ModelSerializer):
     """
-    Схема из redoc:
-    - user: username владельца токена (readOnly)
-    - following: username
-    Правила:
-    - нельзя подписаться на себя
-    - пара (user, following) уникальна
+    - user: (кто подписан)
+    - following: (на кого подписан)
     """
     user = serializers.SlugRelatedField(
         slug_field='username', read_only=True)

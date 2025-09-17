@@ -17,10 +17,7 @@ User = get_user_model()
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    """
-    /api/v1/posts/  (GET, POST)
-    /api/v1/posts/{id}/ (GET, PUT, PATCH, DELETE)
-    """
+    """Api для постов."""
     queryset = Post.objects.select_related('author').all()
     serializer_class = PostSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
@@ -38,11 +35,6 @@ class PostViewSet(viewsets.ModelViewSet):
         return qs
 
     def list(self, request, *args, **kwargs):
-        """
-        Без limit/offset — вернуть список.
-        С limit/offset — вернуть стандартный пагинированный словарь
-        (count/next/previous/results) через LimitOffsetPagination.
-        """
         qs = self.get_queryset()
         params = request.query_params
         if 'limit' in params or 'offset' in params:
@@ -55,10 +47,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    /api/v1/groups/ (GET)
-    /api/v1/groups/{id}/ (GET)
-    """
+    """Api для групп."""
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -66,10 +55,7 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    """
-    /api/v1/posts/{post_id}/comments/ (GET, POST)
-    /api/v1/posts/{post_id}/comments/{id}/ (GET, PUT, PATCH, DELETE)
-    """
+    """Api для комментарий."""
     serializer_class = CommentSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
     pagination_class = None
@@ -89,10 +75,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class FollowViewSet(mixins.ListModelMixin,
                     mixins.CreateModelMixin,
                     viewsets.GenericViewSet):
-    """
-    /api/v1/follow/ (GET, POST)
-    GET поддерживает поиск по query-param `search` (username подписок).
-    """
+    """Api для подписок."""
     serializer_class = FollowSerializer
     permission_classes = (IsAuthenticated,)
     filter_backends = (SearchFilter,)
