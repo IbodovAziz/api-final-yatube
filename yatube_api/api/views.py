@@ -1,17 +1,16 @@
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets, mixins
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly, IsAuthenticated)
 from rest_framework.filters import SearchFilter
-from rest_framework.response import Response
 
-from posts.models import Post, Group, Comment, Follow
+from posts.models import Post, Group, Follow
 from .serializers import (
     PostSerializer, GroupSerializer, CommentSerializer, FollowSerializer
 )
 from .permissions import IsAuthorOrReadOnly
+from .paginators import OptionalLimitOffsetPagination
 
 User = get_user_model()
 
@@ -21,7 +20,7 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.select_related('author').all()
     serializer_class = PostSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
-    pagination_class = None
+    pagination_class = OptionalLimitOffsetPagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -34,24 +33,12 @@ class PostViewSet(viewsets.ModelViewSet):
             qs = qs.filter(group_id=group_id)
         return qs
 
-    def list(self, request, *args, **kwargs):
-        qs = self.get_queryset()
-        params = request.query_params
-        if 'limit' in params or 'offset' in params:
-            paginator = LimitOffsetPagination()
-            page = paginator.paginate_queryset(qs, request, view=self)
-            serializer = self.get_serializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(qs, many=True)
-        return Response(serializer.data)
-
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     """Api для групп."""
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    pagination_class = None
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -64,9 +51,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         return get_object_or_404(Post, pk=self.kwargs.get('post_id'))
 
     def get_queryset(self):
-        return Comment.objects.select_related('author', 'post').filter(
-            post=self.get_post()
-        )
+        return self.get_post().comments.select_related('author')
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, post=self.get_post())
